@@ -64,34 +64,6 @@ def count_common_tags(input_objects):
     return counter
 
 
-# main
-input_objects = []
-tag_files = sys.argv
-tag_files.pop(0)
-for filename in tag_files:
-    with open(filename, "r") as file:
-        tags = []
-        comma_delimited_tags = file.readline()
-        for raw_tag in comma_delimited_tags.split(','):
-            tag = raw_tag.strip()
-            # Filter out artist tags because it's trivial to browse the artist manually
-            if not (tag.startswith("artist:") or tag in tag_blacklist):
-                tags.append(tag)
-        input_objects.append(tags)
-
-
-all_known_tags = list_all_tags(input_objects)
-feature_objects = []
-for obj in input_objects:
-    feature_objects.append(tags_to_boolean_features(obj, all_known_tags))
-
-clusterer = sklearn.cluster.AffinityPropagation()
-class_of_each_element = clusterer.fit_predict(np.array(feature_objects))
-total_clusters = max(class_of_each_element)
-print("Total clusters: " + str(total_clusters))
-print(class_of_each_element)
-
-
 # Returns all objects that belong to the given class number
 def filter_elements_from_class(class_num, feature_objects, class_of_each_element):
     result = []
@@ -148,6 +120,7 @@ def assemble_query_for_objects(input_objects, all_known_tags):
     return result
 
 
+# Converts internal representation of query to derpibooru syntax
 def query_to_derpibooru_query(query):
     output_string = ""
     for or_tag_list in query:
@@ -160,18 +133,52 @@ def query_to_derpibooru_query(query):
     return output_string
 
 
-# Actually invoke the magic defined above on each image class
-for class_num in range(0, total_clusters):
-    print("------")
-    input_objects_in_class= filter_elements_from_class(class_num, input_objects, class_of_each_element)
-    top_common_tags = count_common_tags(input_objects_in_class).most_common(20)
-    # Filter out small clusters in the image that don't have enough statistics to be useful
-    if (top_common_tags[0][1]) <= cluster_size_theshold: # TUNABLE PARAMETER, see top of the file
-        print("Class " + str(class_num) + " is too small to get useful results, skipping it.")
-        print("You can tune this behavior via cluster_size_theshold variable.")
-        continue
-    #print(top_common_tags)
-    query = assemble_query_for_objects(input_objects_in_class, all_known_tags)
-    print(query_to_derpibooru_query(query))
+# main; not executed if this script is 'import'ed
+if __name__ == "__main__":
+    input_objects = []
+    tag_files = sys.argv
+    tag_files.pop(0)
+    for filename in tag_files:
+        with open(filename, "r") as file:
+            tags = []
+            comma_delimited_tags = file.readline()
+            for raw_tag in comma_delimited_tags.split(','):
+                tag = raw_tag.strip()
+                # Filter out artist tags because it's trivial to browse the artist manually
+                if not (tag.startswith("artist:") or tag in tag_blacklist):
+                    tags.append(tag)
+            input_objects.append(tags)
+
+    # Assemble "feature object" for every input picture
+    # where every known tag is marked 0 (present) or 1 (not present) for every picture
+    # Required for clustering algorithms to work
+    all_known_tags = list_all_tags(input_objects)
+    feature_objects = []
+    for obj in input_objects:
+        feature_objects.append(tags_to_boolean_features(obj, all_known_tags))
+
+    # Affinity propagation clustering seems to work well enough,
+    # and best of all it determines the number of clusters automatically
+    # so we have one less parameter to tune
+    clusterer = sklearn.cluster.AffinityPropagation()
+    class_of_each_element = clusterer.fit_predict(np.array(feature_objects))
+    total_clusters = max(class_of_each_element)
+    print("Total clusters: " + str(total_clusters))
+    print(class_of_each_element)
+
+    # Assemble imageboard queries for images within each class 
+    # Classes are determined by the clustering algorithm above
+    for class_num in range(0, total_clusters):
+        print("------")
+        input_objects_in_class= filter_elements_from_class(class_num, input_objects, class_of_each_element)
+        top_common_tags = count_common_tags(input_objects_in_class).most_common(20)
+        # Filter out small clusters in the image that don't have enough statistics to be useful
+        if (top_common_tags[0][1]) <= cluster_size_theshold: # TUNABLE PARAMETER, see top of the file
+            print("Class " + str(class_num) + " is too small to get useful results, skipping it.")
+            print("You can tune this behavior via cluster_size_theshold variable.")
+            continue
+        #print(top_common_tags)
+        query = assemble_query_for_objects(input_objects_in_class, all_known_tags)
+        print(query_to_derpibooru_query(query))
 
 
