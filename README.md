@@ -13,6 +13,8 @@
 
 The engine has been tested on derpibooru; the quickstart instructions assume you're using it. Adapting it for other imageboards should be fairly trivial, see below.
 
+ 1. Install scikit-learn for Python 3. Most Linux distros have it in the repositories; non-Linux users can get it from http://scikit-learn.org/stable/
+ 
  1. Fetch the tags from the imageboard into files, one image = one file. Tags should be comma-delimited. 
   * A Linux shell script that automatically fetches tags for given images from derpibooru is included, run  `bash fetch_derpibooru_tags.sh pic1.jpg pic2.png ...` 
  1. Run `python3 recommend.py pic1.jpg.tags pic2.png.tags ...`
