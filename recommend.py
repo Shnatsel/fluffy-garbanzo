@@ -173,7 +173,7 @@ if __name__ == "__main__":
         input_objects_in_class= filter_elements_from_class(class_num, input_objects, class_of_each_element)
         top_common_tags = count_common_tags(input_objects_in_class).most_common(20)
         # Filter out small clusters in the image that don't have enough statistics to be useful
-        if (top_common_tags[0][1]) <= cluster_size_theshold: # TUNABLE PARAMETER, see top of the file
+        if (len(input_objects_in_class)) <= cluster_size_theshold: # TUNABLE PARAMETER, see top of the file
             print("Class " + str(class_num) + " is too small to get useful results, skipping it.")
             print("You can tune this behavior via cluster_size_theshold variable.")
             continue
