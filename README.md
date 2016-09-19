@@ -42,7 +42,7 @@ Then, for each cluster that is big enough (there are at least `cluster_size_thes
 
 1. Find the most common tag in the cluster (ignoring already processed tags) and mark it "selected"
 2. As long as the amount of images in this cluster that _do not_ have the selected tag is greater than `cluster_size * cluster_coverage_allowance`, find the most common tag among the images not covered by and append it to the query with OR relationship.
-3. Append the currently assembled tag combination delimited with OR to the output query, mark the selected tag "already processed" and go to step 1
+3. Append the currently assembled tag combination delimited with OR to the output query with an AND relationshipas, mark the selected tag "already processed" and go to step 1
 
 This builds a query like `tag1 AND (tag2 OR tag3) AND (tag4 OR tag5 OR tag6) ...` for each cluster.
 
@@ -61,4 +61,9 @@ If the imageboard meets the requirements, you will have to:
 
 ## TODO
 
-META TODO
+A.k.a the things that are trivial but I didn't bother doing because I don't browse derpibooru:
+
+1. Reduce non-determinism. Right now looking for the most common tag among the images not yet covered by the current query results in lots of tags with identical metrics if you have 2 or 3 images remaining. The algorithm choosing the tag to append to the OR-delimited query should choose the most common tag in the entire cluster if the metrics on the tags are equal.
+2. Try explicitly excluding works of artists in the input image set, assuming you have seen them already through regular filtering and/or personal galleries
+3. ???
+4. PROFIT!!!
