@@ -14,9 +14,9 @@
 The engine has been tested on derpibooru; the quickstart instructions assume you're using it. Adapting it for other imageboards should be fairly trivial, see below.
 
  1. Install scikit-learn for Python 3. Most Linux distros have it in the repositories; non-Linux users can get it from http://scikit-learn.org/stable/
- 
  1. Fetch the tags from the imageboard into files, one image = one file. Tags should be comma-delimited. 
   * A Linux shell script that automatically fetches tags for given images from derpibooru is included, run  `bash fetch_derpibooru_tags.sh pic1.jpg pic2.png ...` 
+  * It doesn't always find a match for every image, so you might have to fall back to reverse image search to get tags for some images. Once you find the image on the board, you can get the tags in easy-to-copypaste format by appending .json to the image URL, like this: https://derpibooru.org/1253256.json
  1. Run `python3 recommend.py pic1.jpg.tags pic2.png.tags ...`
 
  1. The script will output several _very long_ tag queries; for derpibooru that's going to look along the lines of `(tag1 || tag2), (tag3 || tag3 || tag4), (tag2 || tag4 || tag5 || tag 7) ...` Copy the **beginning** of the query into imageboard's search box. You can usually tell when the tags become irrelevant; copy them only up to that point. Also consider sorting resulting images by score.
@@ -38,7 +38,16 @@ TODO
 
 ## Adapting this for your favourite imageboard
 
-TODO
+What the imageboard has to support for this to work:
+
+1. Search queries such as `tag1 AND (tag2 OR tag3) AND (tag4 OR tag5 OR tag6)`. The exact syntax may vary but grouping several tags with OR relationship should be supported. For example, derpibooru/booru-on-rails engine qualifies, while danbooru does not.
+2. Some form of reverse image search, e.g. by file hash, so you can find your images on the imageboard and get tags for them. If the imageboard has no reverse search, you need all your favourites to be in the form of imageboard links instead of images.
+
+If the imageboard meets the requirements, you will have to:
+
+1. Write a script that fetches the tags for your images from the imageboard into files. One image = one file with tags. Tags should be comma-delimited. See `fetch_derpibooru_tags.sh` for example code. (Alternatively you can just copypaste the tags for your images into files by hand, but that's gonna take a while).
+2. Write a function that converts the internal representation of tag query into a valid search query for your imageboard. See functions `assemble_query_for_objects` for documentation on the internal representation and `query_to_derpibooru_query` for example code that converts it into derpibooru queries.
+3. Tune the `tag_blacklist` and adapt filtering out the useless `artists:` to your imageboard's tag system (people who enjoy works of a certain artist most likely have already seen all of their works and do not need a recommendation engine to do that, so artist info is removed).
 
 ## TODO
 
