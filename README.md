@@ -34,7 +34,17 @@ If the program didn't work quite well the first time around (which is very likel
 
 ## How it works
 
-TODO
+The script works in two principal stages.
+
+First off it discovers classes of similar images within the input image set via sklearn's [affinity propagation](http://scikit-learn.org/stable/modules/clustering.html#affinity-propagation) clustering algorithm. This stems from the observation that people generally have several distinct favored tag combinations, and a desirable tag in one cluster would not be desirable in another (e.g. the tag "fog" is great in landscapes but is not desirable in portraits, etc).
+
+Then, for each cluster that is big enough (there are at least `cluster_size_theshold` images in the class) it attempts to build a search query via the following algorithm:
+
+1. Find the most common tag in the cluster (ignoring already processed tags) and mark it "selected"
+2. As long as the amount of images in this cluster that _do not_ have the selected tag is greater than `cluster_size * cluster_coverage_allowance`, find the most common tag among the images not covered by and append it to the query with OR relationship.
+3. Append the currently assembled tag combination delimited with OR to the output query, mark the selected tag "already processed" and go to step 1
+
+This builds a query like `tag1 AND (tag2 OR tag3) AND (tag4 OR tag5 OR tag6) ...` for each cluster.
 
 ## Adapting this for your favourite imageboard
 
