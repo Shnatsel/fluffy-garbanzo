@@ -1,6 +1,6 @@
-# Personal picture recommendation engine that uses your favourite pics as input
+# Client-side picture recommendation engine that uses your favourite pics as input
 
-##Features:
+## Features
 
 * Accepts an unstructured set of your favourite pictures and figures out the patterns automagically
 * Tag-based
